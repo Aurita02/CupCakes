@@ -39,6 +39,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import com.example.cupcake.data.DataSource
 import com.example.cupcake.ui.StartOrderScreen
+
+
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.cupcake.data.DataSource
+import com.example.cupcake.ui.StartOrderScreen
+import com.example.cupcake.ui.SelectOptionScreen
+import com.example.cupcake.ui.OrderSummaryScreen
+
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
  */
