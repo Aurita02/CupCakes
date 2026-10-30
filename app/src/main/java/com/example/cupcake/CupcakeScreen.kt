@@ -42,15 +42,12 @@ import com.example.cupcake.ui.StartOrderScreen
 
 
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.cupcake.data.DataSource
-import com.example.cupcake.ui.StartOrderScreen
+
 import com.example.cupcake.ui.SelectOptionScreen
 import com.example.cupcake.ui.OrderSummaryScreen
 
@@ -96,26 +93,133 @@ fun CupcakeApp(
     viewModel: OrderViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+
+    val currentScreen = CupcakeScreen.valueOf(
+        backStackEntry?.destination?.route ?: CupcakeScreen.Start.name
+    )
+
     Scaffold(
         topBar = {
             CupcakeAppBar(
-                canNavigateBack = false,
-                navigateUp = {}
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = {
+                    navController.navigateUp()
+                }
             )
         }
     ) { innerPadding ->
 
         val uiState by viewModel.uiState.collectAsState()
 
-        StartOrderScreen(
-            quantityOptions = DataSource.quantityOptions,
-            onNextButtonClicked = { quantity ->
-                viewModel.setQuantity(quantity)
-            },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        )
+        NavHost(
+            navController = navController,
+            startDestination = CupcakeScreen.Start.name,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+
+            composable(route = CupcakeScreen.Start.name) {
+                StartOrderScreen(
+                    quantityOptions = DataSource.quantityOptions,
+                    onNextButtonClicked = { quantity ->
+                        viewModel.setQuantity(quantity)
+                        navController.navigate(CupcakeScreen.Flavor.name)
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            dimensionResource(R.dimen.padding_medium)
+                        )
+                )
+            }
+
+            composable(route = CupcakeScreen.Flavor.name) {
+                val context = LocalContext.current
+
+                SelectOptionScreen(
+                    subtotal = uiState.price,
+                    options = DataSource.flavors.map { id ->
+                        context.resources.getString(id)
+                    },
+                    onSelectionChanged = {
+                        viewModel.setFlavor(it)
+                    },
+                    onCancelButtonClicked = {
+                        viewModel.resetOrder()
+                        navController.popBackStack(
+                            CupcakeScreen.Start.name,
+                            inclusive = false
+                        )
+                    },
+                    onNextButtonClicked = {
+                        navController.navigate(CupcakeScreen.Pickup.name)
+                    },
+                    modifier = Modifier.fillMaxHeight()
+                )
+            }
+
+            composable(route = CupcakeScreen.Pickup.name) {
+                SelectOptionScreen(
+                    subtotal = uiState.price,
+                    options = uiState.pickupOptions,
+                    onSelectionChanged = {
+                        viewModel.setDate(it)
+                    },
+                    onCancelButtonClicked = {
+                        viewModel.resetOrder()
+                        navController.popBackStack(
+                            CupcakeScreen.Start.name,
+                            inclusive = false
+                        )
+                    },
+                    onNextButtonClicked = {
+                        navController.navigate(CupcakeScreen.Summary.name)
+                    },
+                    modifier = Modifier.fillMaxHeight()
+                )
+            }
+
+            composable(route = CupcakeScreen.Summary.name) {
+                val context = LocalContext.current
+
+                OrderSummaryScreen(
+                    orderUiState = uiState,
+                    onCancelButtonClicked = {
+                        viewModel.resetOrder()
+                        navController.popBackStack(
+                            CupcakeScreen.Start.name,
+                            inclusive = false
+                        )
+                    },
+                    onSendButtonClicked = { subject, summary ->
+                        val intent = android.content.Intent(
+                            android.content.Intent.ACTION_SEND
+                        ).apply {
+                            type = "text/plain"
+                            putExtra(
+                                android.content.Intent.EXTRA_SUBJECT,
+                                subject
+                            )
+                            putExtra(
+                                android.content.Intent.EXTRA_TEXT,
+                                summary
+                            )
+                        }
+
+                        context.startActivity(
+                            android.content.Intent.createChooser(
+                                intent,
+                                context.getString(
+                                    R.string.new_cupcake_order
+                                )
+                            )
+                        )
+                    },
+                    modifier = Modifier.fillMaxHeight()
+                )
+            }
+        }
     }
 }
+
 
