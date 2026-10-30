@@ -57,6 +57,14 @@ import com.example.cupcake.ui.OrderSummaryScreen
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
  */
+
+
+enum class CupcakeScreen(val title: Int) {
+    Start(R.string.app_name),
+    Flavor(R.string.choose_flavor),
+    Pickup(R.string.choose_pickup_date),
+    Summary(R.string.order_summary)
+}
 @Composable
 fun CupcakeAppBar(
     canNavigateBack: Boolean,
