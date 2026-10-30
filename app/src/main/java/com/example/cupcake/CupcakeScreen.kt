@@ -34,6 +34,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.cupcake.ui.OrderViewModel
 
+
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import com.example.cupcake.data.DataSource
+import com.example.cupcake.ui.StartOrderScreen
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
  */
@@ -62,21 +67,32 @@ fun CupcakeAppBar(
     )
 }
 
+
 @Composable
 fun CupcakeApp(
     viewModel: OrderViewModel = viewModel(),
     navController: NavHostController = rememberNavController()
 ) {
-
     Scaffold(
         topBar = {
             CupcakeAppBar(
                 canNavigateBack = false,
-                navigateUp = { /* TODO: implement back navigation */ }
+                navigateUp = {}
             )
         }
     ) { innerPadding ->
+
         val uiState by viewModel.uiState.collectAsState()
 
+        StartOrderScreen(
+            quantityOptions = DataSource.quantityOptions,
+            onNextButtonClicked = { quantity ->
+                viewModel.setQuantity(quantity)
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        )
     }
 }
+
